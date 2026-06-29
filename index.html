@@ -3,36 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laberinto - Saberes Previos Lectores</title>
+    <title>Laberinto de Lectores C-C-C</title>
     <style>
         body {
             margin: 0;
+            padding: 15px;
             font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(#1a1a2e, #0f0f1e);
-            color: white;
+            background: #0f1629;
+            color: #ddd;
             text-align: center;
         }
-        h1 { margin: 15px; color: #a0a0ff; }
+        h1 { color: #88aaff; margin-bottom: 5px; }
+        .hud { font-size: 1.6em; margin: 10px 0 20px; }
+        .lives { color: #ff6666; }
         canvas {
-            border: 5px solid #6a6ab0;
+            border: 5px solid #5566aa;
             border-radius: 15px;
-            box-shadow: 0 0 20px rgba(106, 106, 176, 0.5);
+            box-shadow: 0 0 25px rgba(80, 100, 200, 0.6);
         }
-        .info {
-            font-size: 1.4em;
-            margin: 10px;
-        }
-        .lives { color: #ff6b6b; }
     </style>
 </head>
 <body>
     <h1>🏛️ Laberinto de Lectores C-C-C</h1>
-    <div class="info">
-        <span class="lives">❤️ Vidas: <span id="lives">3</span></span> | 
+    <div class="hud">
+        ❤️ <span id="lives" class="lives">3</span> &nbsp;&nbsp;&nbsp; 
         Nivel <span id="level">1</span>
     </div>
 
-    <canvas id="game" width="640" height="520"></canvas>
+    <canvas id="game" width="720" height="560"></canvas>
 
     <div id="question" style="margin:20px; font-size:1.35em; min-height:80px;"></div>
     <div id="feedback"></div>
@@ -46,12 +44,111 @@
         let level = 1;
         let player = { x: 1, y: 1 };
 
-        let maze = [ /* mismo laberinto anterior */ ];
+        const maze = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,1],
+            [1,0,1,0,1,0,1,0,1,0,1,1,1,0,1,0,1,1],
+            [1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+            [1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,0,1],
+            [1,0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,0,1],
+            [1,1,1,0,1,1,1,1,1,0,1,0,1,0,1,1,1,1],
+            [1,0,0,0,0,0,0,0,1,0,0,0,1,0,1,0,0,1],
+            [1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,0,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
 
-        // ... (por ahora solo actualizamos título y estilo)
+        const goal = { x: 16, y: 9 };
 
-        // Instrucciones rápidas
-        document.getElementById('question').innerHTML = "Usa las <strong>flechas del teclado</strong> para moverte";
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Paredes
+            for (let y = 0; y < maze.length; y++) {
+                for (let x = 0; x < maze[y].length; x++) {
+                    if (maze[y][x] === 1) {
+                        ctx.fillStyle = '#445577';
+                        ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
+                        ctx.strokeStyle = '#667799';
+                        ctx.strokeRect(x*TILE, y*TILE, TILE, TILE);
+                    } else {
+                        ctx.fillStyle = '#1a2333';
+                        ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
+                    }
+                }
+            }
+
+            // Meta
+            ctx.fillStyle = '#22ff99';
+            ctx.fillRect(goal.x*TILE + 4, goal.y*TILE + 4, TILE-8, TILE-8);
+
+            // Personaje (mejorado)
+            const px = player.x * TILE + TILE/2;
+            const py = player.y * TILE + TILE/2;
+            
+            // Cuerpo
+            ctx.fillStyle = '#ffcc44';
+            ctx.beginPath();
+            ctx.arc(px, py, TILE/2 - 4, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Cabeza / gorro
+            ctx.fillStyle = '#ff8844';
+            ctx.beginPath();
+            ctx.arc(px, py - 8, 14, 0, Math.PI*2);
+            ctx.fill();
+
+            // Ojos
+            ctx.fillStyle = 'white';
+            ctx.beginPath(); ctx.arc(px-8, py-6, 5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(px+8, py-6, 5, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = 'black';
+            ctx.beginPath(); ctx.arc(px-8, py-6, 2, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(px+8, py-6, 2, 0, Math.PI*2); ctx.fill();
+        }
+
+        // Controles
+        document.addEventListener('keydown', e => {
+            let nx = player.x, ny = player.y;
+            if (e.key === "ArrowUp" || e.key === "w") ny--;
+            if (e.key === "ArrowDown" || e.key === "s") ny++;
+            if (e.key === "ArrowLeft" || e.key === "a") nx--;
+            if (e.key === "ArrowRight" || e.key === "d") nx++;
+
+            if (nx >= 0 && nx < maze[0].length && ny >= 0 && ny < maze.length && maze[ny][nx] === 0) {
+                player.x = nx;
+                player.y = ny;
+                draw();
+
+                if (player.x === goal.x && player.y === goal.y) {
+                    document.getElementById('question').innerHTML = "¿Cómo interactúa este texto con otros?";
+                    document.getElementById('feedback').innerHTML = `
+                        <button onclick="answer(true)">Referencias e inferencias</button><br><br>
+                        <button onclick="answer(false)">Solo con sinónimos</button>
+                    `;
+                }
+            }
+        });
+
+        window.answer = function(correct) {
+            if (correct) {
+                alert("¡Muy bien! Avanzaste de nivel");
+                level++;
+                document.getElementById('level').textContent = level;
+                player = {x:1, y:1};
+            } else {
+                lives--;
+                document.getElementById('lives').textContent = lives;
+                if (lives <= 0) {
+                    alert("Game Over");
+                } else {
+                    alert("Incorrecto");
+                }
+            }
+            draw();
+        };
+
+        draw();
     </script>
 </body>
 </html>
