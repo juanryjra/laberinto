@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laberinto - Saberes Previos Lectores</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(#1a1a2e, #0f0f1e);
+            color: white;
+            text-align: center;
+        }
+        h1 { margin: 15px; color: #a0a0ff; }
+        canvas {
+            border: 5px solid #6a6ab0;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(106, 106, 176, 0.5);
+        }
+        .info {
+            font-size: 1.4em;
+            margin: 10px;
+        }
+        .lives { color: #ff6b6b; }
+    </style>
+</head>
+<body>
+    <h1>🏛️ Laberinto de Lectores C-C-C</h1>
+    <div class="info">
+        <span class="lives">❤️ Vidas: <span id="lives">3</span></span> | 
+        Nivel <span id="level">1</span>
+    </div>
+
+    <canvas id="game" width="640" height="520"></canvas>
+
+    <div id="question" style="margin:20px; font-size:1.35em; min-height:80px;"></div>
+    <div id="feedback"></div>
+
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const TILE = 40;
+
+        let lives = 3;
+        let level = 1;
+        let player = { x: 1, y: 1 };
+
+        let maze = [ /* mismo laberinto anterior */ ];
+
+        // ... (por ahora solo actualizamos título y estilo)
+
+        // Instrucciones rápidas
+        document.getElementById('question').innerHTML = "Usa las <strong>flechas del teclado</strong> para moverte";
+    </script>
+</body>
+</html>
